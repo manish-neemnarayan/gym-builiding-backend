@@ -13,7 +13,7 @@ const registerToGymSchema = new mongoose.Schema({
     type: Date,
   },
 
-  active: {
+  isActive: {
     type: Boolean,
     default: false,
   },

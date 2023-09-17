@@ -1,0 +1,235 @@
+[
+	{
+	  _id: 1,
+	  name: "Purvi",
+	  gender: "Female"
+	},
+	{
+	  _id: 2,
+	  name: "Seema",
+	  gender: "Female"
+	},
+	{
+	  _id: 3,
+	  name: "Simran",
+	  gender: "Female"
+	},
+	{
+	  _id: 4,
+	  name: "Rahul",
+	  gender: "Male"
+	},
+	{
+	  _id: 5,
+	  name: "Jaydev",
+	  gender: "Male"
+	},
+	{
+	  _id: 6,
+	  name: "Kiran",
+	  gender: "Male"
+	},
+	{
+	  _id: 7,
+	  name: "Jyoti",
+	  gender: "Female"
+	},
+	{
+	  _id: 8,
+	  name: "Akshay",
+	  gender: "Male"
+	},
+	{
+	  _id: 9,
+	  name: "Laxmi",
+	  gender: "Female"
+	},
+	{
+	  _id: 10,
+	  name: "Rekha",
+	  gender: "Female"
+	},
+	{
+	  _id: 11,
+	  name: "Reetu",
+	  gender: "Female"
+	},
+]
+
+**** normal insertion array of json objects ****** seed data
+[{"_id":1,"name":"Purvi","gender":"Female"},{"_id":2,"name":"Seema","gender":"Female"},{"_id":3,"name":"Simran","gender":"Female"},{"_id":4,"name":"Rahul","gender":"Male"},{"_id":5,"name":"Jaydev","gender":"Male"},{"_id":6,"name":"Kiran","gender":"Male"},{"_id":7,"name":"Jyoti","gender":"Female"},{"_id":8,"name":"Akshay","gender":"Male"},{"_id":9,"name":"Laxmi","gender":"Female"},{"_id":10,"name":"Rekha","gender":"Female"},{"_id":11,"name":"Reetu","gender":"Female"},{"_id":12,"name":"Amit","gender":"Male"},{"_id":13,"name":"Priya","gender":"Female"},{"_id":14,"name":"Vikram","gender":"Male"},{"_id":15,"name":"Anita","gender":"Female"},{"_id":16,"name":"Raj","gender":"Male"},{"_id":17,"name":"Neeta","gender":"Female"},{"_id":18,"name":"Suresh","gender":"Male"},{"_id":19,"name":"Neha","gender":"Female"},{"_id":20,"name":"Rohit","gender":"Male"},{"_id":21,"name":"Sunita","gender":"Female"},{"_id":22,"name":"Vivek","gender":"Male"},{"_id":23,"name":"Pooja","gender":"Female"},{"_id":24,"name":"Arun","gender":"Male"},{"_id":25,"name":"Swati","gender":"Female"}]
+
+**** normal insertion array of json embedded objects **** seed data
+[
+	{
+		name: "Sarah",
+		age: 23,
+		isMarried: false,
+		subscription: {
+			type: "yearly",
+			renewalDate: {
+				day: 25, 
+				month: "June",
+				year: 2023
+			}
+		}
+	}
+]
+
+---another one working with array
+
+[
+	{
+		name: "Sarah",
+		age: 23,
+		isMarried: false,
+		subscription: {
+			type: "yearly",
+			renewalDate: {
+				day: 25, 
+				month: "June",
+				year: 2023
+			}
+		}
+		address: ["London", "UK"],
+		purchase: [
+			{ name: "iPhone", model: "iPhone11", price: 1299 },
+			{ name: "Sony TV", model: "Sony Bravia", price: 15999 }
+		]
+	}
+]
+
+$unset: operator used to remove field e.g: {$unset: "age: '' "}
+
+Note: 
+1. A document can be of 16 MB maximum and a document can have maximum 100 nested document. And document which is having nested document/documents is called embedded document
+
+2. whenever we use dot notation in an expression always need to wrap that in string. "subscription.type"
+
+**** Relations: Embedded Documents & Reference Documents ****
+ 
+For one to one Embedded document is good to go;
+{
+	name: "John",
+	age: 32,
+	from: ["London", "UK"],
+	contact: {"email": "manish9301kumar@gmail.com", "phone": 8239749238}
+}
+ --if we use reference here then we will be having two collections of same size (user && contact), and if we want to query let say 10,000 user along with contact details then at the same time query flow will be highest and definitely not performance oriented.
+
+
+Reference could be used if we want analytical data.
+$lookup is used to aggregate value of refrenced documents
+db.customer.aggregate({$lookup: {from: "address", localField: "address", foreignField: "_id", as: "addr"}})
+
+One to Many --- referenced should be used
+many to many --- referenced should be used
+
+----------------------------------------------Schema-------------------------------------------------
+
+
+
+## Validation Level -------------------------------------------------
+it sets which documents will get validated and when?
+	-Strict: all inserts & updates will be validated
+	-Moderate: all inserts are validated. But updates are validated only for those documents which were valid before.
+
+## Validation Action -------------------------------------------------
+it is used to set what should happen if the validation fails
+	-Error: Throws an error and stops insert or update
+	-Warning: Simply shows a warning to the user & insert or update proceeds
+
+---Schema Example with validator
+
+db.createCollection("customer", {
+   validator: {
+      $jsonSchema: {
+         bsonType: "object",
+         required: ["name", "email", "address"],
+         properties: {
+            name: {
+               bsonType: "string",
+               description: "Name is a required field"
+            },
+            email: {
+               bsonType: "string",
+               description: "Email is a required field"
+            },
+            address: {
+               bsonType: "object",
+               description: "Address is a required field",
+               properties: {
+                  street: {
+                     bsonType: "string"
+                  },
+                  city: {
+                     bsonType: "string"
+                  },
+                  country: {
+                     bsonType: "string"
+                  }
+               }
+            }
+         }
+      }
+   },
+
+   validationLevel: "moderate",
+   validationAction: "warn"
+})
+
+----For already created schema
+
+
+db.runCommand({
+   collMod: "customers",
+   validator: {
+      $jsonSchema: {
+         bsonType: "object",
+         required: ["name", "email", "address"],
+         properties: {
+            name: {
+               bsonType: "string",
+               description: "Name is a required field"
+            },
+            email: {
+               bsonType: "string",
+               description: "Email is a required field"
+            },
+            address: {
+               bsonType: "object",
+               description: "Address is a required field",
+               properties: {
+                  street: {
+                     bsonType: "string"
+                  },
+                  city: {
+                     bsonType: "string"
+                  },
+                  country: {
+                     bsonType: "string"
+                  }
+               }
+            }
+         }
+      }
+   },
+
+   validationLevel: "strict",
+   validationAction: "warn"
+})
+
+
+??????????????????????? for unordered insertion do add this {ordered: false} in insertMany()
+
+
+----writeConcern({w: 2, j: true})
+write concern gives feedback after inserting documents to specified limit of servers like above is 2 server and only after inserting to both db instances it gives acknowledgement.
+
+There is j(journal) option also which is helpful in storage engine. when client(node server) insert document to db, it first goes to storage engine(RAM) and from RAM -->> Disk write. And in between there is journal for having records of documents in case RAM is wiped out then storage engine will have idea what and where to write this insert or other command.
+
+
+
+--------atomicity
+while insertOne() or any other method have any error writing to db then whole insert operation is rolled back and no data is saved. 
+This is what atomicity means either operation is completed or rolled back. Atomcity is applied to per document level. If we use insertMany() then only that document is returned which is having error.
